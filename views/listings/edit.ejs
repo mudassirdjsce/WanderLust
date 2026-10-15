@@ -26,17 +26,27 @@
             <input type="file" name="listing[image]" class="form-control">
         </div>
 
-        <div class="row ">
+        <div class="row">
             <div class="mb-3 col-md-4">
-                <label for="price" class="form-label">Price</label>
-                <input type="number" name="listing[price]" value="<%= listing.price %>" class="form-control" required>
+                <label for="price" class="form-label">Price (&#8377;)</label>
+                <input type="number" name="listing[price]" value="<%= listing.price %>" class="form-control" required min="0">
                 <div class="invalid-feedback">Enter Price</div>
             </div>
 
-            <div class="mb-3 col-md-8">
+            <div class="mb-3 col-md-4">
                 <label for="country" class="form-label">Country</label>
                 <input type="text" name="listing[country]" value="<%= listing.country %>" class="form-control" required>
                 <div class="invalid-feedback">Enter Country</div>
+            </div>
+
+            <div class="mb-3 col-md-4">
+                <label for="category" class="form-label">Category</label>
+                <select name="listing[category]" class="form-select" required>
+                    <% const cats = ["Trending", "Beachfront", "Rooms", "Iconic cities", "Mountains", "Castles", "Amazing Pools", "Camping", "Farms", "Arctic", "Luxe"]; %>
+                    <% for (let c of cats) { %>
+                        <option value="<%= c %>" <%= (listing.category === c) ? 'selected' : '' %>><%= c %></option>
+                    <% } %>
+                </select>
             </div>
         </div>
         

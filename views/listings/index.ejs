@@ -1,140 +1,350 @@
-<%layout('layouts/boilerplate')%>
+<% layout('layouts/boilerplate') %>
 
-<style>
-   
-    .filter-bar {
-    overflow-x: auto;
-    scrollbar-width: none;      /* Firefox */
-}
+<div class="explore-page-header py-3">
+  <!-- Top Bar: Category Carousel + Filters Button + Tax Toggle -->
+  <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap flex-lg-nowrap">
+    <!-- Category Carousel Container with Scroll Buttons -->
+    <div class="category-carousel-wrapper position-relative flex-grow-1 overflow-hidden">
+      <button class="carousel-nav-btn prev-btn d-none d-md-flex align-items-center justify-content-center shadow-sm" id="cat-prev-btn" aria-label="Scroll left">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
 
-.filter-bar::-webkit-scrollbar {
-    display: none;              /* Chrome, Edge, Safari */
-}
-    .filter{
-        text-align: center;
-        margin-right: 2rem;
-        margin-top:2rem;
-        opacity: 0.7;
-    }
-    .filter:hover{
-        opacity: 1;
-        cursor: pointer;
-    }
-    .filter p{
-        font-size: 0.8rem;
-    }
+      <div class="filter-bar d-flex align-items-center gap-4 py-2" id="category-scroll-container">
+        <% 
+          const categoriesList = [
+            { id: "Trending", label: "Trending", icon: "fa-solid fa-fire" },
+            { id: "Beachfront", label: "Beachfront", icon: "fa-solid fa-umbrella-beach" },
+            { id: "Rooms", label: "Rooms", icon: "fa-solid fa-bed" },
+            { id: "Iconic cities", label: "Iconic cities", icon: "fa-solid fa-mountain-city" },
+            { id: "Mountains", label: "Mountains", icon: "fa-solid fa-mountain" },
+            { id: "Castles", label: "Castles", icon: "fa-brands fa-fort-awesome" },
+            { id: "Amazing Pools", label: "Amazing Pools", icon: "fa-solid fa-person-swimming" },
+            { id: "Camping", label: "Camping", icon: "fa-solid fa-campground" },
+            { id: "Farms", label: "Farms", icon: "fa-solid fa-cow" },
+            { id: "Arctic", label: "Arctic", icon: "fa-solid fa-snowflake" },
+            { id: "Luxe", label: "Luxe", icon: "fa-solid fa-gem" }
+          ];
+        %>
 
-    .tax-toggle{
-       
-        border: 2px solid black;
-        padding: 0.7rem;
-        border-radius: 1rem;
-        margin-left: 1rem;
-    }
-    .tax-info{
-        display: none;
-    }
-</style>
-<body>
-    
-    <div class="d-flex flex-nowrap align-items-center justify-content-between" id="filters row">
-        <div class="filter-bar d-flex flex-nowrap gap-4 py-3 col-lg-9 col-md-8">
-            <div class="filter">
-                <div><i class="fa-solid fa-fire"></i></div>
-                <p>Trending</p>
+        <% for (const cat of categoriesList) { %>
+          <% 
+            const isCatActive = (typeof activeCategory !== 'undefined' && activeCategory === cat.id) || 
+                                (cat.id === "Trending" && (typeof activeCategory === 'undefined' || activeCategory === "Trending" || !activeCategory));
+            let catUrl = `/listing?category=${encodeURIComponent(cat.id)}`;
+            if (typeof searchQuery !== 'undefined' && searchQuery) catUrl += `&q=${encodeURIComponent(searchQuery)}`;
+            if (typeof minPrice !== 'undefined' && minPrice) catUrl += `&minPrice=${encodeURIComponent(minPrice)}`;
+            if (typeof maxPrice !== 'undefined' && maxPrice) catUrl += `&maxPrice=${encodeURIComponent(maxPrice)}`;
+            if (typeof activeSort !== 'undefined' && activeSort) catUrl += `&sort=${encodeURIComponent(activeSort)}`;
+          %>
+          <a href="<%= catUrl %>" class="filter-tab text-decoration-none <%= isCatActive ? 'active' : '' %>">
+            <div class="filter-icon-wrap">
+              <i class="<%= cat.icon %>"></i>
             </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-bed"></i></div>
-                <p>Rooms</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-mountain-city"></i></div>
-                <p>Iconic cities</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-brands fa-fort-awesome"></i></i></div>
-                <p>Castle</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-sailboat"></i></div>
-                <p>Boats</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-person-swimming"></i></div>
-                <p>Amazing Pools</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-snowflake"></i></div>
-                <p>Arctic</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-fire"></i></div>
-                <p>Trending</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-fire"></i></div>
-                <p>Trending</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-bed"></i></div>
-                <p>Rooms</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-mountain-city"></i></div>
-                <p>Iconic cities</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-bed"></i></div>
-                <p>Rooms</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-mountain-city"></i></div>
-                <p>Iconic cities</p>
-            </div>
-        </div>
-        <div class="tax-toggle col-lg-2.5">
-            <div class="form-check-reverse form-switch">
-                <input class="form-check-input" type="checkbox" role="switch" id="switchCheckDefault">
-                <label class="form-check-label" for="switchCheckDefault">Display total after taxes
-                    </label>
-            </div>
-        </div>
-        
-    
+            <p class="filter-label mb-0"><%= cat.label %></p>
+          </a>
+        <% } %>
+      </div>
+
+      <button class="carousel-nav-btn next-btn d-none d-md-flex align-items-center justify-content-center shadow-sm" id="cat-next-btn" aria-label="Scroll right">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
     </div>
-    
-    
-       <div class="row row-cols-lg-4 row-cols-md-2 row-cols-sm-1">
-            <%for(let listing of listings){%>
-                <a class="listing-link" href="/listing/<%= listing._id %>">
-                    <div class="card col listing-card">
-                    <img src="<%= listing.image.url %>" class="card-img-top" alt="ListingImage">
-                     <div class="card-img-overlay"></div>
-                    <div class="card-body">
-                        <p class="card-text">
-                        <b><%= listing.title %></b><br>
-                        &#8377;<%= listing.price.toLocaleString("en-IN") %>/night<i class="tax-info">&nbsp; +18% GST</i>
-                        </p>
-                    </div>
-                </div>
-                </a>
-                
-            <%}%>
-        </div>
-    
-</body>
 
+    <!-- Action Tools: Filters Button & Tax Toggle -->
+    <div class="d-flex align-items-center gap-2 ms-auto flex-shrink-0">
+      <!-- Filter Modal Trigger -->
+      <button type="button" class="btn btn-filter-pill d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#filtersModal">
+        <i class="fa-solid fa-sliders"></i>
+        <span>Filters</span>
+        <% if ((minPrice || maxPrice || activeSort) && (minPrice || maxPrice || activeSort !== '')) { %>
+          <span class="badge bg-danger rounded-pill">Active</span>
+        <% } %>
+      </button>
+
+      <!-- Tax Switch -->
+      <div class="tax-toggle-box d-flex align-items-center gap-2 shadow-sm">
+        <label class="form-check-label small fw-semibold text-secondary" for="taxSwitch">
+          Display taxes
+        </label>
+        <div class="form-check form-switch m-0">
+          <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="taxSwitch">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Filter Badges (if search query or filters are applied) -->
+  <% if ((searchQuery && searchQuery.trim() !== '') || (minPrice || maxPrice) || (activeCategory && activeCategory !== 'Trending')) { %>
+    <div class="active-filters-bar d-flex align-items-center gap-2 flex-wrap mt-3 pt-2 border-top">
+      <span class="small text-muted fw-semibold">Filtered by:</span>
+
+      <% if (searchQuery && searchQuery.trim() !== '') { %>
+        <span class="badge rounded-pill bg-light text-dark border px-3 py-2 d-flex align-items-center gap-2">
+          <i class="fa-solid fa-magnifying-glass text-muted"></i> "<%= searchQuery %>"
+          <a href="/listing" class="text-secondary text-decoration-none ms-1"><i class="fa-solid fa-xmark"></i></a>
+        </span>
+      <% } %>
+
+      <% if (activeCategory && activeCategory !== 'Trending') { %>
+        <span class="badge rounded-pill bg-light text-dark border px-3 py-2 d-flex align-items-center gap-2">
+          Category: <strong><%= activeCategory %></strong>
+          <a href="/listing" class="text-secondary text-decoration-none ms-1"><i class="fa-solid fa-xmark"></i></a>
+        </span>
+      <% } %>
+
+      <% if (minPrice || maxPrice) { %>
+        <span class="badge rounded-pill bg-light text-dark border px-3 py-2 d-flex align-items-center gap-2">
+          Price: ₹<%= minPrice || '0' %> - ₹<%= maxPrice || 'Any' %>
+          <a href="/listing" class="text-secondary text-decoration-none ms-1"><i class="fa-solid fa-xmark"></i></a>
+        </span>
+      <% } %>
+
+      <a href="/listing" class="btn btn-link btn-sm text-danger fw-semibold text-decoration-none ms-auto">
+        Clear all filters
+      </a>
+    </div>
+  <% } %>
+</div>
+
+<!-- Listings Grid or Empty State -->
+<div class="listings-container mt-2 mb-5">
+  <% if (listings.length === 0) { %>
+    <!-- Empty State -->
+    <div class="empty-state-box text-center py-5 my-5 rounded-4 bg-light border">
+      <div class="empty-icon-wrap mb-3">
+        <i class="fa-solid fa-compass-drafting fa-3x text-secondary opacity-50"></i>
+      </div>
+      <h4 class="fw-bold text-dark">No stays found matching your criteria</h4>
+      <p class="text-muted max-w-md mx-auto" style="max-width: 450px;">
+        Try adjusting or clearing your filters, expanding your price range, or searching for a different destination.
+      </p>
+      <a href="/listing" class="btn btn-dark rounded-pill px-4 py-2 mt-2 fw-semibold">
+        Explore all listings
+      </a>
+    </div>
+  <% } else { %>
+    <!-- Grid -->
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+      <% for (let listing of listings) { %>
+        <div class="col">
+          <div class="listing-card-wrapper position-relative h-100">
+            <!-- Wishlist Heart Button -->
+            <button class="wishlist-btn-heart shadow-sm" data-id="<%= listing._id %>" aria-label="Save to wishlist">
+              <i class="fa-regular fa-heart"></i>
+            </button>
+
+            <!-- Card Link -->
+            <a class="listing-link d-block text-decoration-none text-dark h-100" href="/listing/<%= listing._id %>">
+              <div class="listing-card card border-0 h-100">
+                <!-- Image Container with Hover Zoom -->
+                <div class="card-img-container position-relative overflow-hidden rounded-4">
+                  <img src="<%= listing.image.url %>" class="card-img-top listing-img" alt="<%= listing.title %>" loading="lazy">
+                  <% if (listing.category) { %>
+                    <span class="category-badge position-absolute bottom-0 start-0 m-2 px-2 py-1 rounded-pill small fw-semibold text-white">
+                      <%= listing.category %>
+                    </span>
+                  <% } %>
+                </div>
+
+                <!-- Card Meta -->
+                <div class="card-body px-1 pt-3 pb-0">
+                  <div class="d-flex justify-content-between align-items-start mb-1">
+                    <h6 class="card-title fw-bold text-truncate mb-0" style="max-width: 80%;" title="<%= listing.title %>">
+                      <%= listing.title %>
+                    </h6>
+                    <div class="rating-pill d-flex align-items-center gap-1 small fw-semibold">
+                      <i class="fa-solid fa-star text-warning"></i>
+                      <span>4.88</span>
+                    </div>
+                  </div>
+
+                  <p class="text-muted small mb-1 text-truncate">
+                    <%= listing.location %>, <%= listing.country %>
+                  </p>
+
+                  <div class="price-container mt-1">
+                    <span class="fw-bold fs-6">
+                      &#8377;<span class="base-price" data-price="<%= listing.price %>"><%= Number(listing.price).toLocaleString("en-IN") %></span>
+                    </span>
+                    <span class="text-muted small"> / night</span>
+                    <span class="tax-info text-secondary small d-none">&nbsp;+18% GST</span>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  <% } %>
+</div>
+
+<!-- Filters Modal -->
+<div class="modal fade" id="filtersModal" tabindex="-1" aria-labelledby="filtersModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-bottom px-4">
+        <h5 class="modal-title fw-bold" id="filtersModalLabel">Filters</h5>
+        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form action="/listing" method="GET">
+        <% if (typeof activeCategory !== 'undefined' && activeCategory) { %>
+          <input type="hidden" name="category" value="<%= activeCategory %>">
+        <% } %>
+        <% if (typeof searchQuery !== 'undefined' && searchQuery) { %>
+          <input type="hidden" name="q" value="<%= searchQuery %>">
+        <% } %>
+
+        <div class="modal-body p-4">
+          <!-- Price Range Section -->
+          <div class="mb-4">
+            <h6 class="fw-bold mb-1">Price range</h6>
+            <p class="text-muted small mb-3">Nightly prices before taxes and fees</p>
+
+            <div class="row g-2 align-items-center">
+              <div class="col">
+                <div class="form-floating">
+                  <input type="number" class="form-control rounded-3" id="minPriceInput" name="minPrice" placeholder="0" min="0" value="<%= minPrice || '' %>">
+                  <label for="minPriceInput">Minimum (&#8377;)</label>
+                </div>
+              </div>
+              <div class="col-auto text-muted">—</div>
+              <div class="col">
+                <div class="form-floating">
+                  <input type="number" class="form-control rounded-3" id="maxPriceInput" name="maxPrice" placeholder="50000" min="0" value="<%= maxPrice || '' %>">
+                  <label for="maxPriceInput">Maximum (&#8377;)</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr>
+
+          <!-- Sorting Section -->
+          <div class="mb-2">
+            <h6 class="fw-bold mb-2">Sort by</h6>
+            <div class="d-flex flex-column gap-2">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="sort" id="sortFeatured" value="" <%= !activeSort ? 'checked' : '' %>>
+                <label class="form-check-label" for="sortFeatured">Recommended / Featured</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="sort" id="sortPriceAsc" value="price_asc" <%= activeSort === 'price_asc' ? 'checked' : '' %>>
+                <label class="form-check-label" for="sortPriceAsc">Price: Low to High</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="sort" id="sortPriceDesc" value="price_desc" <%= activeSort === 'price_desc' ? 'checked' : '' %>>
+                <label class="form-check-label" for="sortPriceDesc">Price: High to Low</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="sort" id="sortNewest" value="newest" <%= activeSort === 'newest' ? 'checked' : '' %>>
+                <label class="form-check-label" for="sortNewest">Newest listings</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer d-flex justify-content-between px-4 py-3 bg-light rounded-bottom-4">
+          <a href="/listing" class="btn btn-link text-dark text-decoration-none fw-bold p-0">Clear all</a>
+          <button type="submit" class="btn btn-dark rounded-pill px-4 py-2 fw-semibold">Show stays</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Page Interactions Script -->
 <script>
-    let taxSwitch=document.getElementById("switchCheckDefault");
-    taxSwitch.addEventListener("click",()=>{
-        let taxInfo=document.getElementsByClassName("tax-info");
-        for(info of taxInfo){
-            if(info.style.display!="inline"){
-                info.style.display="inline";
-            }else{
-                info.style.display="none";
-            }
-            
+  document.addEventListener("DOMContentLoaded", () => {
+    // 1. Category Bar Horizontal Scroll
+    const scrollContainer = document.getElementById("category-scroll-container");
+    const prevBtn = document.getElementById("cat-prev-btn");
+    const nextBtn = document.getElementById("cat-next-btn");
+
+    if (scrollContainer && prevBtn && nextBtn) {
+      prevBtn.addEventListener("click", () => {
+        scrollContainer.scrollBy({ left: -250, behavior: "smooth" });
+      });
+      nextBtn.addEventListener("click", () => {
+        scrollContainer.scrollBy({ left: 250, behavior: "smooth" });
+      });
+    }
+
+    // 2. Tax Switch with LocalStorage
+    const taxSwitch = document.getElementById("taxSwitch");
+    const taxInfos = document.querySelectorAll(".tax-info");
+    const basePriceElements = document.querySelectorAll(".base-price");
+
+    const savedTaxState = localStorage.getItem("wanderlust_show_tax") === "true";
+    if (taxSwitch) {
+      taxSwitch.checked = savedTaxState;
+      updateTaxDisplay(savedTaxState);
+
+      taxSwitch.addEventListener("change", () => {
+        const isChecked = taxSwitch.checked;
+        localStorage.setItem("wanderlust_show_tax", isChecked);
+        updateTaxDisplay(isChecked);
+      });
+    }
+
+    function updateTaxDisplay(showTax) {
+      taxInfos.forEach(el => {
+        if (showTax) {
+          el.classList.remove("d-none");
+        } else {
+          el.classList.add("d-none");
         }
-    })
+      });
+
+      basePriceElements.forEach(el => {
+        const raw = Number(el.getAttribute("data-price"));
+        if (!isNaN(raw)) {
+          if (showTax) {
+            const withTax = Math.round(raw * 1.18);
+            el.textContent = withTax.toLocaleString("en-IN");
+          } else {
+            el.textContent = raw.toLocaleString("en-IN");
+          }
+        }
+      });
+    }
+
+    // 3. Wishlist Heart Interaction
+    const wishlistBtns = document.querySelectorAll(".wishlist-btn-heart");
+    const savedWishlist = JSON.parse(localStorage.getItem("wanderlust_wishlist") || "[]");
+
+    wishlistBtns.forEach(btn => {
+      const id = btn.getAttribute("data-id");
+      const icon = btn.querySelector("i");
+
+      if (savedWishlist.includes(id)) {
+        btn.classList.add("active");
+        icon.classList.remove("fa-regular");
+        icon.classList.add("fa-solid");
+      }
+
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const curList = JSON.parse(localStorage.getItem("wanderlust_wishlist") || "[]");
+        const idx = curList.indexOf(id);
+
+        if (idx === -1) {
+          curList.push(id);
+          btn.classList.add("active");
+          icon.classList.remove("fa-regular");
+          icon.classList.add("fa-solid");
+        } else {
+          curList.splice(idx, 1);
+          btn.classList.remove("active");
+          icon.classList.remove("fa-solid");
+          icon.classList.add("fa-regular");
+        }
+
+        localStorage.setItem("wanderlust_wishlist", JSON.stringify(curList));
+      });
+    });
+  });
 </script>

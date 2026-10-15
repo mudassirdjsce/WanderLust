@@ -1,49 +1,200 @@
-<style>
-  .btn-search{
-    background-color:#fe424d ;
-    color: white;
-    border-radius: 1.5rem;
-  }
-  .btn-search:hover{
-    background-color:#fe424d ;
-    color: white;
-  }
-  .btn-search i{
-    display: inline;
-    margin-right: 0.5rem;
-  }
-  
-</style>
-<nav class="navbar navbar-expand-md bg-body-light border-bottom sticky-top">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="/listing"><i class="fa-regular fa-compass"></i></a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" >
+<nav class="navbar navbar-expand-md bg-white border-bottom sticky-top py-2">
+  <div class="container-fluid px-md-4">
+    <!-- Brand Logo -->
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/listing">
+      <i class="fa-regular fa-compass brand-icon"></i>
+      <span class="brand-title">wanderlust</span>
+    </a>
+
+    <!-- Mobile Toggler -->
+    <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    
-    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-      <div class="navbar-nav">
-        <a class="nav-link" href="/listing">Explore</a>
-        
-       
+
+    <div class="collapse navbar-collapse" id="navbarContent">
+      <!-- Center: Search Pill with Live Autocomplete -->
+      <div class="search-container mx-auto my-2 my-md-0 position-relative">
+        <form class="search-bar d-flex align-items-center" action="/listing" method="GET" role="search" id="navbar-search-form">
+          <input 
+            class="form-control search-input" 
+            type="search" 
+            name="q" 
+            id="search-input" 
+            placeholder="Search destinations, villas, cities..." 
+            value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>"
+            autocomplete="off"
+          />
+          <button class="btn btn-search-circle" type="submit" aria-label="Search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+        </form>
+
+        <!-- Live Autocomplete Suggestions Dropdown -->
+        <div id="search-suggestions" class="search-suggestions-dropdown shadow-lg d-none">
+          <div class="suggestions-header d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+            <small class="text-muted fw-bold text-uppercase" style="font-size: 0.72rem;">Suggested Destinations</small>
+            <span class="badge bg-light text-dark suggestions-count"></span>
+          </div>
+          <div class="suggestions-list" id="suggestions-list">
+            <!-- Dynamic items populated by client JS -->
+          </div>
+        </div>
       </div>
-      <div class="navbar-nav ms-auto ">
-        <form class="d-flex" role="search">
-      <input class="form-control me-2 " type="search" placeholder="Search destinations" />
-      <button class="btn btn-search" type="submit"><i class="fa-solid fa-magnifying-glass"></i>Search</button>
-    </form>
-      </div>
-      <div class="navbar-nav ms-auto">
-        <a class="nav-link" href="/listing/new">Airbnb your home</a>
-        <%if(!currUser){%>
-          <a class="nav-link" href="/signup"><b>SignUp</b></a>
-        <a class="nav-link" href="/login"><b>LogIn</b></a>
-        <%}%>
-        
-        <%if(currUser){%>
-        <a class="nav-link" href="/logout"><b>Logout</b></a>
-       <%}%>
+
+      <!-- Right Nav Links & User Profile -->
+      <div class="navbar-nav align-items-center gap-2 ms-md-auto">
+        <a class="nav-link host-link fw-semibold px-3 py-2 rounded-pill" href="/listing/new">
+          Airbnb your home
+        </a>
+
+        <% if (!currUser) { %>
+          <div class="d-flex align-items-center gap-2">
+            <a class="nav-link fw-semibold px-3 py-1 rounded-pill auth-link" href="/signup">Sign up</a>
+            <a class="btn btn-dark rounded-pill px-3 py-1 fw-semibold" href="/login">Log in</a>
+          </div>
+        <% } %>
+
+        <% if (currUser) { %>
+          <div class="dropdown">
+            <button class="btn user-menu-btn d-flex align-items-center gap-2 rounded-pill border px-3 py-1 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fa-solid fa-bars text-secondary" style="font-size: 0.85rem;"></i>
+              <div class="user-avatar-circle">
+                <%= currUser.username.charAt(0).toUpperCase() %>
+              </div>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-2 p-2" style="min-width: 220px;">
+              <li class="px-3 py-2 border-bottom">
+                <span class="d-block small text-muted">Signed in as</span>
+                <strong class="text-dark">@<%= currUser.username %></strong>
+              </li>
+              <li>
+                <a class="dropdown-item py-2 rounded-2 mt-1" href="/listing/new">
+                  <i class="fa-solid fa-plus me-2 text-danger"></i>Create new listing
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item py-2 rounded-2" href="/listing">
+                  <i class="fa-solid fa-compass me-2 text-primary"></i>Explore all stays
+                </a>
+              </li>
+              <li><hr class="dropdown-divider my-1"></li>
+              <li>
+                <a class="dropdown-item py-2 rounded-2 text-danger fw-semibold" href="/logout">
+                  <i class="fa-solid fa-right-from-bracket me-2"></i>Log out
+                </a>
+              </li>
+            </ul>
+          </div>
+        <% } %>
       </div>
     </div>
   </div>
 </nav>
+
+<!-- Client Script for Live Search Autocomplete -->
+<script>
+  (function() {
+    const searchInput = document.getElementById("search-input");
+    const suggestionsDropdown = document.getElementById("search-suggestions");
+    const suggestionsList = document.getElementById("suggestions-list");
+    const suggestionsCount = document.querySelector(".suggestions-count");
+    const searchForm = document.getElementById("navbar-search-form");
+
+    if (!searchInput || !suggestionsDropdown || !suggestionsList) return;
+
+    let debounceTimer = null;
+
+    searchInput.addEventListener("input", function() {
+      const query = this.value.trim();
+      clearTimeout(debounceTimer);
+
+      if (query.length < 2) {
+        suggestionsDropdown.classList.add("d-none");
+        suggestionsList.innerHTML = "";
+        return;
+      }
+
+      debounceTimer = setTimeout(async () => {
+        try {
+          const res = await fetch(`/listing/api/suggestions?q=${encodeURIComponent(query)}`);
+          if (!res.ok) return;
+          const suggestions = await res.json();
+
+          if (!suggestions || suggestions.length === 0) {
+            suggestionsList.innerHTML = `
+              <div class="p-3 text-center text-muted small">
+                <i class="fa-solid fa-magnifying-glass mb-1 d-block text-secondary"></i>
+                No matching destinations found for "<strong>${escapeHtml(query)}</strong>"
+              </div>
+            `;
+            if (suggestionsCount) suggestionsCount.textContent = "0";
+            suggestionsDropdown.classList.remove("d-none");
+            return;
+          }
+
+          if (suggestionsCount) suggestionsCount.textContent = suggestions.length;
+          suggestionsList.innerHTML = suggestions.map((s) => {
+            const icon = s.type === "location" 
+              ? `<i class="fa-solid fa-location-dot text-danger me-3 fs-5"></i>` 
+              : `<i class="fa-solid fa-house-chimney text-primary me-3 fs-5"></i>`;
+
+            return `
+              <div class="suggestion-item d-flex align-items-center p-3 border-bottom cursor-pointer" 
+                   data-type="${s.type}" 
+                   data-query="${escapeHtml(s.query)}" 
+                   data-id="${s.id || ''}">
+                <div class="suggestion-icon-wrap">${icon}</div>
+                <div class="flex-grow-1 overflow-hidden">
+                  <div class="fw-semibold text-truncate text-dark" style="font-size: 0.93rem;">${escapeHtml(s.text)}</div>
+                  <div class="small text-muted text-truncate" style="font-size: 0.78rem;">${escapeHtml(s.subtext || '')}</div>
+                </div>
+                <i class="fa-solid fa-arrow-right text-muted small ms-2"></i>
+              </div>
+            `;
+          }).join("");
+
+          suggestionsDropdown.classList.remove("d-none");
+
+          // Bind click to each item
+          document.querySelectorAll(".suggestion-item").forEach(item => {
+            item.addEventListener("click", function() {
+              const type = this.getAttribute("data-type");
+              const id = this.getAttribute("data-id");
+              const query = this.getAttribute("data-query");
+
+              if (type === "listing" && id) {
+                window.location.href = `/listing/${id}`;
+              } else {
+                searchInput.value = query;
+                searchForm.submit();
+              }
+            });
+          });
+        } catch (err) {
+          console.warn("Autocomplete error:", err);
+        }
+      }, 250);
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", function(e) {
+      if (!searchInput.contains(e.target) && !suggestionsDropdown.contains(e.target)) {
+        suggestionsDropdown.classList.add("d-none");
+      }
+    });
+
+    // Reopen dropdown on focus if input has value
+    searchInput.addEventListener("focus", function() {
+      if (suggestionsList.children.length > 0 && this.value.trim().length >= 2) {
+        suggestionsDropdown.classList.remove("d-none");
+      }
+    });
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str).replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+      });
+    }
+  })();
+</script>

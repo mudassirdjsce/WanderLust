@@ -48,8 +48,8 @@ const store = MongoStore.create({
   touchAfter: 24 * 3600,
 });
 
-store.on("error", () => {
-  console.log("ERor in mongo session store", err);
+store.on("error", (err) => {
+  console.log("Error in mongo session store", err);
 });
 
 const sessionOptions = {
@@ -80,9 +80,14 @@ app.use((req, res, next) => {
   next();
 });
 
-//listings
+// Root route
+app.get("/", (req, res) => {
+  res.redirect("/listing");
+});
+
+// listings
 app.use("/listing", listingRouter);
-//Reviews
+// Reviews
 app.use("/listing/:id/reviews", reviewRouter);
 app.use("/", userRouter);
 
@@ -95,6 +100,7 @@ app.use((err, req, res, next) => {
   res.status(statusCode).render("error.ejs", { message });
 });
 
-app.listen(8080, (req, res) => {
-  console.log(`Listening to port ${8080}`);
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`Listening to port ${PORT}`);
 });

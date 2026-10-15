@@ -1,21 +1,46 @@
-const mongoose=require("mongoose");
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "../.env") });
+const mongoose = require("mongoose");
 const Listing = require("../models/listing.js");
-const initData=require("./data.js");
+const User = require("../models/user.js");
+const initData = require("./data.js");
 
-main().then(()=>{
-    console.log("connected to DB");
-}).catch(err => console.log(err));
+const dbUrl = process.env.ATLASDB_URL || "mongodb://127.0.0.1:27017/wanderlust";
 
 async function main() {
-  await mongoose.connect('mongodb://127.0.0.1:27017/wanderlust');
+  await mongoose.connect(dbUrl);
+  console.log("Connected to DB successfully");
 }
 
+const initDB = async () => {
+  await main();
 
+  // Find an existing real user to be the owner (e.g., 'demo')
+  let ownerUser = await User.findOne({ username: "demo" });
+  if (!ownerUser) {
+    ownerUser = await User.findOne();
+  }
 
-const initDB=async()=>{
-    await Listing.deleteMany({});
-    initData.data=initData.data.map((obj)=>({...obj,owner:"6a5b4c9d98875f192b4677d3"}));
-    await Listing.insertMany(initData.data);
-    console.log("Data was initialized");
-}
-initDB();
+  if (!ownerUser) {
+    console.error("No user found in DB! Please sign up or create a user first.");
+    await mongoose.disconnect();
+    return;
+  }
+
+  console.log(`Setting owner to user: ${ownerUser.username} (${ownerUser._id})`);
+
+  await Listing.deleteMany({});
+  const listingsToInsert = initData.data.map((obj) => ({
+    ...obj,
+    owner: ownerUser._id,
+  }));
+
+  await Listing.insertMany(listingsToInsert);
+  console.log(`Successfully initialized ${listingsToInsert.length} listings in database!`);
+  await mongoose.disconnect();
+};
+
+initDB().catch((err) => {
+  console.error("Error initializing DB:", err);
+});
+

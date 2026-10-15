@@ -23,17 +23,34 @@
             <input type="file" name="listing[image]" class="form-control" required>
         </div>
 
-        <div class="row ">
+        <div class="row">
             <div class="mb-3 col-md-4">
-                <label for="price" class="form-label">Price</label>
-                <input type="text" name="listing[price]" placeholder="1200" class="form-control" required>
+                <label for="price" class="form-label">Price (&#8377;)</label>
+                <input type="number" name="listing[price]" placeholder="1200" class="form-control" min="0" required>
                 <div class="invalid-feedback">Enter Price</div>
             </div>
 
-            <div class="mb-3 col-md-8">
+            <div class="mb-3 col-md-4">
                 <label for="country" class="form-label">Country</label>
                 <input type="text" name="listing[country]" placeholder="India" class="form-control" required>
                 <div class="invalid-feedback">Enter Country</div>
+            </div>
+
+            <div class="mb-3 col-md-4">
+                <label for="category" class="form-label">Category</label>
+                <select name="listing[category]" class="form-select" required>
+                    <option value="Trending">Trending</option>
+                    <option value="Beachfront">Beachfront</option>
+                    <option value="Rooms">Rooms</option>
+                    <option value="Iconic cities">Iconic cities</option>
+                    <option value="Mountains">Mountains</option>
+                    <option value="Castles">Castles</option>
+                    <option value="Amazing Pools">Amazing Pools</option>
+                    <option value="Camping">Camping</option>
+                    <option value="Farms">Farms</option>
+                    <option value="Arctic">Arctic</option>
+                    <option value="Luxe">Luxe</option>
+                </select>
             </div>
         </div>
         

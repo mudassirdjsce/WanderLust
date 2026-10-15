@@ -20,6 +20,9 @@ router
   );
   
 
+// Suggestions API (must be before /:id)
+router.get("/api/suggestions", wrapAsync(listingController.getSuggestions));
+
 //New Route
 router.get("/new", isLoggedIn, listingController.renderNewForm);
 
